@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이룸덴탈랩 - 로그인</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <div class="login-screen" id="loginScreen">
+        <div class="login-bg-shapes">
+            <span class="login-shape">🦷</span>
+            <span class="login-shape">🦷</span>
+            <span class="login-shape">🦷</span>
+            <span class="login-shape">🦷</span>
+            <span class="login-shape">🦷</span>
+        </div>
+        <div class="login-box">
+            <div class="login-brand">
+                <span class="login-brand-icon">🦷</span>
+            </div>
+            <h1 class="login-title">이룸덴탈랩</h1>
+            <div class="login-sub">치과기공소 관리 시스템</div>
+            <div class="login-error" id="loginError">
+                아이디 또는 비밀번호를 확인해주세요.
+            </div>
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label>아이디</label>
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="userId" placeholder="아이디를 입력하세요" required>
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="password" placeholder="비밀번호를 입력하세요" required>
+                </div>
+                <button type="submit" class="login-btn" id="loginBtn">로그인</button>
+            </form>
+            <div class="login-links">
+                <a href="#">비밀번호 찾기</a>
+            </div>
+        </div>
+        <div class="login-footer">© 2026 이룸덴탈랩. All rights reserved.</div>
+    </div>
+
+    <div class="app" id="mainApp">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">🦷</div>
+                <div class="sidebar-logo-text">
+                    <div class="logo-title">이룸덴탈랩</div>
+                    <div class="logo-sub">DENTAL LAB PORTAL</div>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section">메뉴</div>
+                <button class="nav-item active" onclick="showPage('list')">
+                    <span class="icon">📋</span><span class="nav-label">진행현황</span>
+                    <span class="badge" id="shipBadge">0</span>
+                </button>
+                <button class="nav-item admin-only" onclick="showPage('statistics')">
+                    <span class="icon">📊</span><span class="nav-label">통계 대시보드</span>
+                </button>
+                <button class="nav-item admin-only" onclick="showPage('sales')">
+                    <span class="icon">💰</span><span class="nav-label">매출 분석</span>
+                </button>
+                <button class="nav-item" onclick="showPage('register')">
+                    <span class="icon">✏️</span><span class="nav-label">접수 등록</span>
+                </button>
+                <button class="nav-item admin-only" onclick="showPage('clinics')">
+                    <span class="icon">🏢</span><span class="nav-label">거래처 관리</span>
+                </button>
+                <button class="nav-item admin-only" onclick="showPage('prosthetics')">
+                    <span class="icon">🦷</span><span class="nav-label">보철 관리</span>
+                </button>
+                <button class="nav-item admin-only" onclick="showPage('settings')">
+                    <span class="icon">⚙️</span><span class="nav-label">설정</span>
+                </button>
+            </div>
+            <div id="adminNoticeContainer"></div>
+            <div class="sidebar-footer">
+                <div class="sidebar-user-card">
+                    <div class="sidebar-user-avatar">👑</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">관리자</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">Administrator</div>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">🚪 로그아웃</button>
+            </div>
+        </nav>
+
+        <div class="main">
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+                    <div class="topbar-title" id="pageTitle">
+                        <div class="topbar-title-icon">📋</div>
+                        진행현황
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="topbar-date" id="topbarDate"></div>
+                    <div class="topbar-user admin" id="topbarUser">👑 관리자</div>
+                    <div id="clinicAlertBadge" style="display:none;position:relative;cursor:pointer;" onclick="showClinicAlerts()">
+                        <span style="font-size:20px;">🔔</span>
+                        <span id="clinicAlertCount" style="position:absolute;top:-5px;right:-5px;background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:999px;min-width:16px;text-align:center;"></span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm admin-only" onclick="showMessageCenter()" style="position:relative;">
+                        💬<span id="messageBadge" style="position:absolute;top:-5px;right:-5px;background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:999px;min-width:16px;text-align:center;display:none;"></span>
+                    </button>
+                    <button class="btn btn-secondary btn-sm clinic-only" onclick="showSendMessage()" style="display:none;">💬 메시지</button>
+                    <button class="btn btn-secondary btn-sm" onclick="showPage('register')">+ 접수 등록</button>
+                </div>
+            </div>
+            
+            <div class="modal-bg" id="clinicAlertModal">
+                <div class="modal" style="max-width:500px;">
+                    <div class="modal-header">
+                        <div class="modal-title">🔔 내 출고 알림</div>
+                        <button class="btn btn-ghost" onclick="closeClinicAlerts()">✕</button>
+                    </div>
+                    <div class="modal-body" id="clinicAlertList" style="max-height:400px;overflow-y:auto;"></div>
+                </div>
+            </div>
+            
+            <div class="modal-bg" id="messageModal">
+                <div class="modal" style="max-width:600px;">
+                    <div class="modal-header">
+                        <div class="modal-title" id="messageModalTitle">💬 메시지</div>
+                        <button class="btn btn-ghost" onclick="closeMessageModal()">✕</button>
+                    </div>
+                    <div class="modal-body" id="messageContent" style="max-height:400px;overflow-y:auto;"></div>
+                    <div class="modal-footer">
+                        <input type="text" id="messageInput" placeholder="메시지를 입력하세요..." style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;">
+                        <button class="btn btn-primary" onclick="sendMessage()">전송</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-list" class="content">
+                <div class="hero-stats">
+                    <div class="hero-stat hs-working">
+                        <div class="hero-stat-top">
+                            <div>
+                                <div class="hero-num" id="cnt-working">0</div>
+                                <div class="hero-label">접수중</div>
+                            </div>
+                            <div class="hero-stat-icon">📥</div>
+                        </div>
+                        <div class="hero-stat-bar"><div class="hero-stat-bar-fill" id="bar-working" style="width:0%"></div></div>
+                    </div>
+                    <div class="hero-stat hs-design">
+                        <div class="hero-stat-top">
+                            <div>
+                                <div class="hero-num" id="cnt-design">0</div>
+                                <div class="hero-label">디자인중</div>
+                            </div>
+                            <div class="hero-stat-icon">🎨</div>
+                        </div>
+                        <div class="hero-stat-bar"><div class="hero-stat-bar-fill" id="bar-design" style="width:0%"></div></div>
+                    </div>
+                    <div class="hero-stat hs-manufacturing">
+                        <div class="hero-stat-top">
+                            <div>
+                                <div class="hero-num" id="cnt-manufacturing">0</div>
+                                <div class="hero-label">제작중</div>
+                            </div>
+                            <div class="hero-stat-icon">⚙️</div>
+                        </div>
+                        <div class="hero-stat-bar"><div class="hero-stat-bar-fill" id="bar-manufacturing" style="width:0%"></div></div>
+                    </div>
+                    <div class="hero-stat hs-ship">
+                        <div class="hero-stat-top">
+                            <div>
+                                <div class="hero-num" id="cnt-ship">0</div>
+                                <div class="hero-label">배송중</div>
+                            </div>
+                            <div class="hero-stat-icon">🚚</div>
+                        </div>
+                        <div class="hero-stat-bar"><div class="hero-stat-bar-fill" id="bar-ship" style="width:0%"></div></div>
+                    </div>
+                    <div class="hero-stat hs-done">
+                        <div class="hero-stat-top">
+                            <div>
+                                <div class="hero-num" id="cnt-done">0</div>
+                                <div class="hero-label">완료됨</div>
+                            </div>
+                            <div class="hero-stat-icon">✅</div>
+                        </div>
+                        <div class="hero-stat-bar"><div class="hero-stat-bar-fill" id="bar-done" style="width:0%"></div></div>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-bar-left">
+                        <button class="filter-tab active" onclick="filterStatus('all',this)">전체</button>
+                        <button class="filter-tab" onclick="filterStatus('working',this)">📥 접수중 <span class="status-count" id="count-working">0</span></button>
+                        <button class="filter-tab" onclick="filterStatus('design',this)">🎨 디자인 <span class="status-count" id="count-design">0</span></button>
+                        <button class="filter-tab" onclick="filterStatus('manufacturing',this)">⚙️ 제작중 <span class="status-count" id="count-manufacturing">0</span></button>
+                        <button class="filter-tab" onclick="filterStatus('ship',this)">🚚 배송중 <span class="status-count" id="count-ship">0</span></button>
+                        <button class="filter-tab" onclick="filterStatus('done',this)">✅ 완료 <span class="status-count" id="count-done">0</span></button>
+                        <div class="filter-divider"></div>
+                        <button class="filter-tab" onclick="filterStatus('urgent',this)" style="color:#dc2626;">🚨 긴급 <span class="status-count" id="count-urgent" style="background:#dc2626;">0</span></button>
+                        <button class="filter-tab" onclick="filterStatus('remake',this)" style="color:#dc2626;">🔄 리메이크 <span class="status-count" id="count-remake" style="background:#dc2626;">0</span></button>
+                    </div>
+                    <div class="filter-bar-right">
+                        <div class="quick-date-filters">
+                            <button class="quick-date-btn" onclick="setQuickDate('today')" id="quick-today">오늘</button>
+                            <button class="quick-date-btn" onclick="setQuickDate('week')" id="quick-week">이번주</button>
+                            <button class="quick-date-btn" onclick="setQuickDate('month')" id="quick-month">이번달</button>
+                        </div>
+                        <select id="clinicFilter" onchange="renderTable()" class="filter-select">
+                            <option value="all">전체 치과</option>
+                        </select>
+                        <select id="typeFilter" onchange="renderTable()" class="filter-select">
+                            <option value="all">전체 보철</option>
+                        </select>
+                        <div class="filter-search">
+                            <input type="text" id="searchInput" placeholder="환자·치과 검색..." oninput="debounceSearch()">
+                        </div>
+                        <select id="sortSelect" onchange="renderTable()" class="filter-select">
+                            <option value="date-desc">최신순</option>
+                            <option value="date-asc">오래된순</option>
+                            <option value="ship-asc" selected>출고일순</option>
+                            <option value="price-desc">금액높은순</option>
+                            <option value="price-asc">금액낮은순</option>
+                        </select>
+                        <button class="btn btn-secondary btn-sm" onclick="openAdvancedSearch()" title="고급 검색">🔍</button>
+                        <button class="btn btn-ghost btn-sm" onclick="resetAllFilters()" title="필터 초기화">⟲</button>
+                    </div>
+                </div>
+                
+                <div class="date-range-bar" id="dateRangeBar" style="display:none;">
+                    <span style="font-size:12px;font-weight:600;color:var(--text2);">기간:</span>
+                    <input type="date" id="dateFrom" class="filter-date-input" onchange="renderTable()">
+                    <span style="color:var(--text3);">~</span>
+                    <input type="date" id="dateTo" class="filter-date-input" onchange="renderTable()">
+                    <button class="btn btn-ghost btn-sm" onclick="clearDateRange()">날짜 지우기</button>
+                    <span style="margin-left:auto;font-size:12px;color:var(--text3);" id="filterResultCount"></span>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📋 접수 목록</span>
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <button class="btn btn-secondary btn-sm" onclick="exportExcel()" title="엑셀로 내보내기">📊 내보내기</button>
+                            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('excelUpload').click()" title="CSV 불러오기">📥 불러오기</button>
+                            <input type="file" id="excelUpload" accept=".csv" style="display:none" onchange="importExcel(this.files[0])">
+                            <button class="btn btn-danger btn-sm" onclick="deleteSelected()" title="선택 항목 삭제">🗑 선택삭제</button>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;" id="caseTableContainer">
+                        <table class="case-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;text-align:center">
+                                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" title="전체 선택">
+                                    </th>
+                                    <th>접수일</th>
+                                    <th>치과</th>
+                                    <th>환자</th>
+                                    <th>치식</th>
+                                    <th>보철 종류</th>
+                                    <th>구분</th>
+                                    <th class="price-col">단가</th>
+                                    <th>상태</th>
+                                    <th>출고일</th>
+                                    <th>메모</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="caseTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-statistics" class="content" style="display:none;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <select id="statsPeriod" onchange="renderStatistics()" style="padding:10px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:14px;font-weight:600;background:var(--surface);">
+                            <option value="thisMonth">📅 이번 달</option>
+                            <option value="lastMonth">📅 지난 달</option>
+                            <option value="thisYear">📅 올해</option>
+                            <option value="all">📅 전체</option>
+                        </select>
+                        <select id="statsClinicFilter" onchange="renderStatistics()" style="padding:10px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:14px;font-weight:600;background:var(--surface);">
+                            <option value="all">🏢 전체 거래처</option>
+                        </select>
+                    </div>
+                    <span id="statsCompare" style="font-size:13px;color:var(--text2);"></span>
+                </div>
+                
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;">
+                    <div class="card" style="padding:18px;text-align:center;background:linear-gradient(135deg,#eff4ff,#dbeafe);">
+                        <div style="font-size:28px;font-weight:800;color:#1d4ed8;" id="statTotal">0</div>
+                        <div style="font-size:12px;color:#1e40af;margin-top:4px;">📋 총 접수</div>
+                        <div style="font-size:11px;margin-top:6px;" id="statTotalCompare"></div>
+                    </div>
+                    <div class="card" style="padding:18px;text-align:center;background:linear-gradient(135deg,#f0fdf4,#dcfce7);">
+                        <div style="font-size:28px;font-weight:800;color:#15803d;" id="statDone">0</div>
+                        <div style="font-size:12px;color:#166534;margin-top:4px;">✅ 완료</div>
+                        <div style="font-size:12px;margin-top:6px;color:#166534;" id="statDoneRate"></div>
+                    </div>
+                    <div class="card" style="padding:18px;text-align:center;background:linear-gradient(135deg,#fffbeb,#fef3c7);">
+                        <div style="font-size:28px;font-weight:800;color:#b45309;" id="statWorking">0</div>
+                        <div style="font-size:12px;color:#92400e;margin-top:4px;">🔄 진행중</div>
+                        <div style="font-size:12px;margin-top:6px;color:#92400e;" id="statWorkingRate"></div>
+                    </div>
+                    <div class="card" style="padding:18px;text-align:center;background:linear-gradient(135deg,#f5f3ff,#ede9fe);">
+                        <div style="font-size:28px;font-weight:800;color:#7c3aed;" id="statAvg">0</div>
+                        <div style="font-size:12px;color:#5b21b6;margin-top:4px;">📊 평균단가</div>
+                    </div>
+                    <div class="card" style="padding:18px;text-align:center;background:linear-gradient(135deg,#0f172a,#1e293b);">
+                        <div style="font-size:24px;font-weight:800;color:#fff;" id="statSales">0</div>
+                        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">💰 총 매출</div>
+                        <div style="font-size:11px;margin-top:6px;" id="statSalesCompare"></div>
+                    </div>
+                </div>
+                
+                <div id="clinicDetailStats"></div>
+                
+                <div style="display:grid;grid-template-columns:3fr 2fr;gap:20px;margin-bottom:20px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">📊 일별 접수 추이</span>
+                        </div>
+                        <div class="card-body" id="dailyChart"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">📈 상태 분포</span>
+                        </div>
+                        <div class="card-body" id="statusChart"></div>
+                    </div>
+                </div>
+                
+                <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">🦷 보철 종류별 매출</span>
+                        </div>
+                        <div class="card-body" id="prostheticStats"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">🏢 거래처별 (상위 5)</span>
+                        </div>
+                        <div class="card-body" id="clinicStats"></div>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-top:20px;">
+                    <div class="card-header">
+                        <span class="card-title">🔄 리메이크 현황</span>
+                        <span id="remakeTotal" style="font-size:12px;color:var(--text3);"></span>
+                    </div>
+                    <div class="card-body" id="remakeStats"></div>
+                </div>
+            </div>
+
+            <div id="page-sales" class="content" style="display:none;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                    <select id="salesPeriod" onchange="renderSalesAnalysis()" style="padding:10px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:14px;font-weight:600;background:var(--surface);">
+                        <option value="thisMonth">📅 이번 달</option>
+                        <option value="lastMonth">📅 지난 달</option>
+                        <option value="thisYear">📅 올해</option>
+                        <option value="all">📅 전체</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" onclick="exportSalesCSV()">📊 CSV 내보내기</button>
+                </div>
+                
+                <div class="card" style="margin-bottom:20px;">
+                    <div class="card-header">
+                        <span class="card-title">📈 매출 추이</span>
+                        <select id="trendType" onchange="renderSalesTrend()" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:var(--surface);">
+                            <option value="daily">일별</option>
+                            <option value="weekly">주별</option>
+                            <option value="monthly">월별</option>
+                        </select>
+                    </div>
+                    <div class="card-body" id="salesTrendChart"></div>
+                </div>
+                
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
+                    <div class="card" style="padding:18px;text-align:center;background:linear-gradient(135deg,#f0fdf4,#dcfce7);">
+                        <div style="font-size:28px;font-weight:800;color:#15803d;" id="salesTotal">0</div>
+                        <div style="font-size:12px;color:#166534;margin-top:4px;">💰 총 매출</div>
+                    </div>
+                    <div class="card" style="padding:18px;text-align:center;background:linear-gradient(135deg,#eff4ff,#dbeafe);">
+                        <div style="font-size:28px;font-weight:800;color:#1d4ed8;" id="salesCases">0</div>
+                        <div style="font-size:12px;color:#1e40af;margin-top:4px;">📋 총 건수</div>
+                    </div>
+                    <div class="card" style="padding:18px;text-align:center;background:linear-gradient(135deg,#fffbeb,#fef3c7);">
+                        <div style="font-size:28px;font-weight:800;color:#b45309;" id="salesAvg">0</div>
+                        <div style="font-size:12px;color:#92400e;margin-top:4px;">📊 평균단가</div>
+                    </div>
+                    <div class="card" style="padding:18px;text-align:center;background:linear-gradient(135deg,#f5f3ff,#ede9fe);">
+                        <div style="font-size:28px;font-weight:800;color:#7c3aed;" id="salesTeeth">0</div>
+                        <div style="font-size:12px;color:#5b21b6;margin-top:4px;">🦷 총 치아</div>
+                    </div>
+                </div>
+                
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">🏢 거래처별 매출 (전체)</span>
+                        </div>
+                        <div class="card-body" id="clinicSalesList"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">📊 매출 비율</span>
+                        </div>
+                        <div class="card-body" id="clinicSalesChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-register" class="content" style="display:none;">
+                <div class="card" style="max-width:620px;">
+                    <div class="card-header">
+                        <span class="card-title">✏️ 접수 등록</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="registerForm">
+                            <div class="form-grid">
+                                <div class="form-row">
+                                    <label class="form-label">치과명 <span class="req">*</span></label>
+                                    <select class="form-select" id="reg-clinic" required onchange="updateRegisterPrice()">
+                                        <option value="">치과를 선택하세요</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <label class="form-label">환자명 <span class="req">*</span></label>
+                                    <input class="form-input" id="reg-patient" placeholder="환자명을 입력하세요" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <label class="form-label">치식 <span class="req">*</span> <button type="button" class="btn btn-secondary btn-sm" onclick="openToothSelector()">🦷 클릭 선택</button></label>
+                                <input class="form-input" id="reg-tooth" placeholder="클릭하여 치식을 선택하세요" readonly onclick="openToothSelector()" required>
+                                <div id="reg-tooth-display" class="tooth-selected-list" style="margin-top:8px;display:none;"></div>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-row">
+                                    <label class="form-label">보철 종류 <span class="req">*</span></label>
+                                    <select class="form-select" id="reg-type" required onchange="updateRegisterPrice()">
+                                        <option value="">보철 종류 선택</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <label class="form-label">유형</label>
+                                    <div class="radio-group">
+                                        <label class="radio-label">
+                                            <input type="radio" name="reg-unitType" value="싱글" checked> 싱글
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="reg-unitType" value="브릿지"> 브릿지
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="reg-isRemake"> 
+                                    <span style="color:var(--red);font-weight:600;">🔄 리메이크</span>
+                                </label>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-row">
+                                    <label class="form-label">출고 예정일</label>
+                                    <input class="form-input" type="date" id="reg-ship">
+                                </div>
+                                <div class="form-row">
+                                    <label class="form-label">단가</label>
+                                    <input class="form-input admin-only" type="number" id="reg-price" placeholder="0">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <label class="form-label">메모</label>
+                                <textarea class="form-textarea" id="reg-memo" placeholder="특이사항이 있으면 입력하세요"></textarea>
+                            </div>
+                            <div style="display:flex;gap:8px;margin-top:16px;">
+                                <button type="submit" class="btn btn-primary">등록하기</button>
+                                <button type="button" class="btn btn-secondary" onclick="resetRegisterForm()">초기화</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tooth-selector" id="toothSelector">
+                <div class="tooth-modal" style="max-width:680px;">
+                    <h3>🦷 치식 선택 (FDI 방식)</h3>
+                    <div style="background:#f0f9ff;padding:16px;border-radius:12px;margin-bottom:12px;">
+                        <div style="text-align:center;font-weight:700;color:#0369a1;margin-bottom:12px;">⬆️ 상악 (Upper Jaw)</div>
+                        <div style="display:flex;justify-content:center;gap:30px;margin-bottom:8px;">
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;color:#64748b;margin-bottom:6px;">우측 (Right)</div>
+                                <div class="tooth-row" id="quad1"></div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;color:#64748b;margin-bottom:6px;">좌측 (Left)</div>
+                                <div class="tooth-row" id="quad2"></div>
+                            </div>
+                        </div>
+                        <div style="text-align:center;font-size:10px;color:#94a3b8;">#17 ← → #27</div>
+                    </div>
+                    <div style="background:#f0fdf4;padding:16px;border-radius:12px;margin-bottom:16px;">
+                        <div style="text-align:center;font-weight:700;color:#15803d;margin-bottom:12px;">⬇️ 하악 (Lower Jaw)</div>
+                        <div style="display:flex;justify-content:center;gap:30px;margin-bottom:8px;">
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;color:#64748b;margin-bottom:6px;">우측 (Right)</div>
+                                <div class="tooth-row" id="quad4"></div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:11px;color:#64748b;margin-bottom:6px;">좌측 (Left)</div>
+                                <div class="tooth-row" id="quad3"></div>
+                            </div>
+                        </div>
+                        <div style="text-align:center;font-size:10px;color:#94a3b8;">#47 ← → #37</div>
+                    </div>
+                    <div class="tooth-selected-list" id="toothSelectedList">
+                        <span style="color:var(--text3);">선택된 치식이 없습니다</span>
+                    </div>
+                    <div class="tooth-modal-btns">
+                        <button type="button" class="btn btn-secondary" onclick="closeToothSelector()">취소</button>
+                        <button type="button" class="btn btn-primary" onclick="confirmToothSelection()">확인</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-bg" id="editCaseModal">
+                <div class="modal" style="max-width:620px;">
+                    <div class="modal-header">
+                        <div class="modal-title">✏️ 접수 수정</div>
+                        <button class="btn btn-ghost" onclick="closeEditModal()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="edit-case-id">
+                        <div class="form-grid">
+                            <div class="form-row">
+                                <label class="form-label">치과명 <span class="req">*</span></label>
+                                <select class="form-select" id="edit-clinic" required>
+                                    <option value="">치과를 선택하세요</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label class="form-label">환자명 <span class="req">*</span></label>
+                                <input class="form-input" id="edit-patient" placeholder="환자명을 입력하세요" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">치식 <span class="req">*</span></label>
+                            <input class="form-input" id="edit-tooth" placeholder="클릭하여 치식을 선택하세요" readonly onclick="openToothSelectorForEdit()" required>
+                            <div id="edit-tooth-display" class="tooth-selected-list" style="margin-top:8px;display:none;"></div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-row">
+                                <label class="form-label">보철 종류 <span class="req">*</span></label>
+                                <select class="form-select" id="edit-type" required>
+                                    <option value="">보철 종류 선택</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label class="form-label">유형</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="edit-unitType" value="싱글" checked> 싱글
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="edit-unitType" value="브릿지"> 브릿지
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="edit-isRemake"> 
+                                <span style="color:var(--red);font-weight:600;">🔄 리메이크</span>
+                            </label>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-row">
+                                <label class="form-label">출고 예정일</label>
+                                <input class="form-input" type="date" id="edit-ship">
+                            </div>
+                            <div class="form-row">
+                                <label class="form-label">단가</label>
+                                <input class="form-input admin-only" type="number" id="edit-price" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">메모</label>
+                            <textarea class="form-textarea" id="edit-memo" placeholder="특이사항이 있으면 입력하세요"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">📷 사진 (<span id="edit-photo-count">0</span>장)</label>
+                            <div id="edit-photo-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+                            <input type="file" id="edit-photo-upload" accept="image/*" multiple style="display:none" onchange="handlePhotoUploadEdit(this)">
+                            <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="document.getElementById('edit-photo-upload').click()">📷 사진 추가</button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeEditModal()">취소</button>
+                        <button class="btn btn-primary" onclick="saveEditCase()">💾 저장</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-bg" id="printModal">
+                <div class="modal" style="max-width:700px;">
+                    <div class="modal-header">
+                        <div class="modal-title">🖨️ 명세서 출력</div>
+                        <button class="btn btn-ghost" onclick="closePrintModal()">✕</button>
+                    </div>
+                    <div class="modal-body" id="printContent" style="padding:20px;"></div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closePrintModal()">닫기</button>
+                        <button class="btn btn-primary" onclick="doPrint()">🖨️ 인쇄</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-clinics" class="content" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🏢 거래처 관리</span>
+                        <button class="btn btn-primary btn-sm" onclick="openClinicModal()">+ 거래처 추가</button>
+                    </div>
+                    <div style="padding:0;">
+                        <table class="case-table">
+                            <thead>
+                                <tr>
+                                    <th>거래처명</th>
+                                    <th>원장님</th>
+                                    <th>전화번호</th>
+                                    <th>사업자번호</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="clinicTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-bg" id="clinicModal">
+                <div class="modal" style="max-width:480px;">
+                    <div class="modal-header">
+                        <div class="modal-title" id="clinicModalTitle">🏢 거래처 추가</div>
+                        <button class="btn btn-ghost" onclick="closeClinicModal()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="clinicId">
+                        <div class="form-row">
+                            <label class="form-label">치과명 <span class="req">*</span></label>
+                            <input class="form-input" id="clinicName" placeholder="예: 서울치과" onchange="autoFillClinicLogin()">
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">원장님 이름</label>
+                            <input class="form-input" id="clinicOwner" placeholder="예: 김서울">
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">전화번호</label>
+                            <input class="form-input" id="clinicPhone" placeholder="예: 02-1234-5678">
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">사업자등록번호 <span class="req">*</span></label>
+                            <input class="form-input" id="clinicBusinessNum" placeholder="예: 123-45-67890" maxlength="20" onchange="autoFillClinicLogin()">
+                            <small style="color:var(--blue);font-size:11px;">로그인 아이디: 치과명 / 비밀번호: 사업자번호 뒷5자리</small>
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">비밀번호</label>
+                            <input class="form-input" id="clinicPassword" placeholder="비밀번호 (자동 생성 가능)">
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">📋 약속 & 주의사항</label>
+                            <div id="clinicPromisesList" style="display:flex;flex-direction:column;gap:8px;">
+                                <div style="display:flex;gap:8px;align-items:center;">
+                                    <input class="form-input" id="clinicPromise1" placeholder="예: 색상: 자연치 색 선호" style="flex:1">
+                                    <button type="button" onclick="addPromiseField()" style="padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer;">+</button>
+                                </div>
+                            </div>
+                            <small style="color:var(--text3);font-size:11px;margin-top:4px;">치과별 특별 요청이나 약속事项 입력</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeClinicModal()">취소</button>
+                        <button class="btn btn-primary" id="saveClinicBtn">저장</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="page-prosthetics" class="content" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🦷 보철 종류 관리</span>
+                        <div style="display:flex;gap:6px;">
+                            <button class="btn btn-secondary btn-sm" onclick="openClinicPriceModal()">💰 치과별 단가</button>
+                            <button class="btn btn-primary btn-sm" onclick="openProstheticModal()">+ 보철 추가</button>
+                        </div>
+                    </div>
+                    <div style="padding:0;">
+                        <table class="case-table">
+                            <thead>
+                                <tr>
+                                    <th>보철명</th>
+                                    <th>기준 단가</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prostheticTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-bg" id="prostheticModal">
+                <div class="modal" style="max-width:400px;">
+                    <div class="modal-header">
+                        <div class="modal-title" id="prostheticModalTitle">🦷 보철 추가</div>
+                        <button class="btn btn-ghost" onclick="closeProstheticModal()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="edit-prosthetic-id">
+                        <div class="form-row">
+                            <label class="form-label">보철명 <span class="req">*</span></label>
+                            <input class="form-input" id="prosthetic-name" placeholder="예: 지르코니아" required>
+                        </div>
+                        <div class="form-row">
+                            <label class="form-label">기준 단가 (원)</label>
+                            <input class="form-input" type="number" id="prosthetic-price" placeholder="예: 150000">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeProstheticModal()">취소</button>
+                        <button class="btn btn-primary" onclick="saveProsthetic()">💾 저장</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-bg" id="clinicPriceModal">
+                <div class="modal" style="max-width:900px;max-height:90vh;">
+                    <div class="modal-header">
+                        <div class="modal-title">💰 치과별 보철 단가 설정</div>
+                        <button class="btn btn-ghost" onclick="closeClinicPriceModal()">✕</button>
+                    </div>
+                    <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+                        <div style="display:flex;gap:8px;margin-bottom:16px;">
+                            <button class="btn btn-sm" id="priceEditBtn" onclick="switchPriceView('edit')">✏️ 수정</button>
+                            <button class="btn btn-sm btn-secondary" id="priceSummaryBtn" onclick="switchPriceView('summary')">📊 한눈에 보기</button>
+                        </div>
+                        
+                        <div id="priceEditView">
+                            <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">치과와 보철 종류별로 단가, 할인(음수), 또는 인상(양수 %)를 설정할 수 있습니다.</p>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 100px;gap:8px;margin-bottom:16px;font-weight:600;font-size:12px;color:var(--text2);padding-bottom:8px;border-bottom:1px solid var(--border);">
+                                <div>치과</div>
+                                <div>보철</div>
+                                <div>단가 / 할인(%)</div>
+                                <div>작업</div>
+                            </div>
+                            <div id="clinicPriceList"></div>
+                            <button class="btn btn-secondary btn-sm" onclick="addClinicPriceRow()" style="margin-top:12px;">+ 가격 설정 추가</button>
+                        </div>
+                        
+                        <div id="priceSummaryView" style="display:none;">
+                            <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">모든 거래처의 보철별 단가를 한눈에 확인합니다.</p>
+                            <div id="clinicPriceSummary" style="overflow-x:auto;"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeClinicPriceModal()">닫기</button>
+                        <button class="btn btn-primary" onclick="saveAllClinicPrices()">💾 모두 저장</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-settings" class="content" style="display:none;">
+                <div class="card" style="max-width:600px;">
+                    <div class="card-header">
+                        <span class="card-title">⚙️ 설정</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="storage-warning" id="storageWarning">
+                            ⚠️ 저장 용량 부족: 백업을 권장합니다.
+                        </div>
+                        
+                        <div class="form-row" style="padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px;">
+                            <label class="form-label">🏭 공장/사업자 정보</label>
+                            <p style="font-size:12px;color:var(--text3);margin-bottom:12px;">명세서에 표시되는 정보를 입력하세요.</p>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                <div class="form-row">
+                                    <label class="form-label" style="font-size:12px;">공장명</label>
+                                    <input class="form-input" type="text" id="setting-name" placeholder="이룸덴탈랩" onchange="saveFactoryInfo()">
+                                </div>
+                                <div class="form-row">
+                                    <label class="form-label" style="font-size:12px;">사업자번호</label>
+                                    <input class="form-input" type="text" id="setting-business" placeholder="000-00-00000" onchange="saveFactoryInfo()">
+                                </div>
+                            </div>
+                            <div class="form-row" style="margin-top:8px;">
+                                <label class="form-label" style="font-size:12px;">주소</label>
+                                <input class="form-input" type="text" id="setting-address" placeholder="서울특별시 강남구..." onchange="saveFactoryInfo()">
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;">
+                                <div class="form-row">
+                                    <label class="form-label" style="font-size:12px;">전화번호</label>
+                                    <input class="form-input" type="text" id="setting-tel" placeholder="02-0000-0000" onchange="saveFactoryInfo()">
+                                </div>
+                                <div class="form-row">
+                                    <label class="form-label" style="font-size:12px;">FAX</label>
+                                    <input class="form-input" type="text" id="setting-fax" placeholder="02-0000-0001" onchange="saveFactoryInfo()">
+                                </div>
+                            </div>
+                            <div class="form-row" style="margin-top:8px;">
+                                <label class="form-label" style="font-size:12px;">기타 정보</label>
+                                <textarea class="form-textarea" id="setting-extra" placeholder="추가로 표시할 정보..." rows="2" onchange="saveFactoryInfo()"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row" style="margin-top:20px;padding-top:20px;border-top:2px solid var(--border);">
+                            <label class="form-label">📢 관리자 공지 작성</label>
+                            <p style="font-size:12px;color:var(--text3);margin-bottom:8px;">거래처 화면에 표시할 공지를 작성하세요.</p>
+                            <input class="form-input" type="text" id="notice-title" placeholder="공지 제목" style="margin-bottom:8px;">
+                            <textarea class="form-textarea" id="notice-content" placeholder="공지 내용" rows="3"></textarea>
+                            <button class="btn btn-primary" onclick="addNotice()" style="margin-top:8px;">📢 공지 등록</button>
+                            <div id="notice-list" style="margin-top:12px;"></div>
+                        </div>
+                            <p style="font-size:12px;color:var(--text3);margin-bottom:12px;">새 비밀번호를 입력하고 변경 버튼을 클릭하세요.</p>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input class="form-input" type="password" id="admin-new-pwd" placeholder="새 비밀번호 (8자 이상)" style="flex:1;">
+                                <button class="btn btn-secondary" onclick="handleAdminPasswordChange()">🔑 변경</button>
+                            </div>
+                            <small id="admin-password-status" style="display:block;margin-top:6px;font-size:11px;"></small>
+                        </div>
+                        
+                        <div class="form-row">
+                            <label class="form-label">💾 데이터 백업</label>
+                            <p style="font-size:12px;color:var(--text3);margin-bottom:8px;">모든 데이터와 사진(최대 100MB)을 백업 파일로 저장합니다.</p>
+                            <button class="btn btn-primary" onclick="backupAll()">📥 백업 저장</button>
+                        </div>
+                        
+                        <div class="form-row" style="margin-top:16px;">
+                            <label class="form-label">📤 데이터 복원</label>
+                            <p style="font-size:12px;color:var(--text3);margin-bottom:8px;">백업 파일에서 데이터를 복원합니다. (사진 포함)</p>
+                            <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreBackup(this.files[0])">
+                            <button class="btn btn-secondary" onclick="document.getElementById('restoreFile').click()">📤 복원하기</button>
+                        </div>
+                        
+                        <div class="form-row" style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
+                            <label class="form-label">📷 저장된 사진 목록</label>
+                            <p style="font-size:12px;color:var(--text3);margin-bottom:8px;">업로드된 모든 사진을 확인하고 다운로드할 수 있습니다.</p>
+                            <button class="btn btn-secondary" onclick="showPhotoGallery()">🖼️ 사진 목록 보기</button>
+                        </div>
+                        
+                        <div class="backup-notice" style="margin-top:16px;">
+                            💡 <strong>백업 권장:</strong> 저장 용량이 100MB를 넘으면 사진 저장이 제한됩니다. 정기적으로 백업을 받으세요.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/statistics.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/clinics.js"></script>
+    <script src="js/prosthetics.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
