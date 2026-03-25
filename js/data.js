@@ -4,6 +4,116 @@ let prosthetics = [];
 let clinicPrices = [];
 let messages = [];
 let adminNotices = [];
+let supabaseClient = null;
+
+function initSupabase() {
+    if (!supabaseClient && window.supabase) {
+        supabaseClient = window.supabase.createClient(
+            AppConfig.supabase.url,
+            AppConfig.supabase.anonKey
+        );
+    }
+    return supabaseClient;
+}
+
+async function loadFromSupabase() {
+    const sb = initSupabase();
+    if (!sb) return false;
+    
+    try {
+        const { data: clinicsData } = await sb.from('clinics').select('*');
+        if (clinicsData && clinicsData.length > 0) {
+            clinics = clinicsData.map(c => ({
+                id: c.id,
+                name: c.name,
+                owner: c.owner,
+                phone: c.phone,
+                businessNumber: c.business_number,
+                loginId: c.login_id,
+                passwordHash: c.password_hash,
+                promises: c.promises || [],
+                prices: c.prices || {},
+                priceAdjust: c.price_adjust || 0
+            }));
+            localStorage.setItem(AppConfig.storageKeys.clinics, JSON.stringify(clinics));
+        }
+        
+        const { data: prostheticsData } = await sb.from('prosthetics').select('*');
+        if (prostheticsData && prostheticsData.length > 0) {
+            prosthetics = prostheticsData.map(p => ({
+                id: p.id,
+                name: p.name,
+                price: p.price
+            }));
+            localStorage.setItem(AppConfig.storageKeys.prosthetics, JSON.stringify(prosthetics));
+        }
+        
+        const { data: casesData } = await sb.from('cases').select('*').order('id', { ascending: false });
+        if (casesData && casesData.length > 0) {
+            cases = casesData.map(c => ({
+                id: c.id,
+                date: c.date,
+                clinicId: c.clinic_id,
+                patient: c.patient,
+                tooth: c.tooth,
+                type: c.type,
+                unitType: c.unit_type,
+                price: c.price,
+                isRemake: c.is_remake,
+                status: c.status,
+                shipDate: c.ship_date,
+                memo: c.memo || '',
+                photos: c.photos || [],
+                doneViewed: c.done_viewed
+            }));
+            localStorage.setItem(AppConfig.storageKeys.cases, JSON.stringify(cases));
+        }
+        
+        const { data: settingsData } = await sb.from('settings').select('*');
+        if (settingsData) {
+            settingsData.forEach(s => {
+                if (s.key === 'adminPassword') {
+                    AppConfig.defaultAdminPassword = s.value;
+                }
+            });
+        }
+        
+        return true;
+    } catch (e) {
+        console.error('Supabase 로드 오류:', e);
+        return false;
+    }
+}
+
+async function saveToSupabase(table, data, idField = 'id') {
+    const sb = initSupabase();
+    if (!sb) return false;
+    
+    try {
+        if (data.id) {
+            await sb.from(table).update(data).eq(idField, data.id);
+        } else {
+            await sb.from(table).insert(data);
+        }
+        return true;
+    } catch (e) {
+        console.error('Supabase 저장 오류:', e);
+        return false;
+    }
+}
+
+async function deleteFromSupabase(table, id) {
+    const sb = initSupabase();
+    if (!sb) return false;
+    
+    try {
+        await sb.from(table).delete().eq('id', id);
+        return true;
+    } catch (e) {
+        console.error('Supabase 삭제 오류:', e);
+        return false;
+    }
+}
 
 function escapeHtml(text) {
     if (text === null || text === undefined) return '';
@@ -25,13 +135,45 @@ function saveData() {
     localStorage.setItem(AppConfig.storageKeys.clinics, JSON.stringify(clinics));
     localStorage.setItem(AppConfig.storageKeys.prosthetics, JSON.stringify(prosthetics));
     localStorage.setItem(AppConfig.storageKeys.clinicPrices, JSON.stringify(clinicPrices));
+    
+    const sb = initSupabase();
+    if (!sb) return;
+    
+    cases.forEach(c => {
+        const sbData = {
+            date: c.date,
+            clinic_id: c.clinicId,
+            patient: c.patient,
+            tooth: c.tooth,
+            type: c.type,
+            unit_type: c.unitType,
+            price: c.price || 0,
+            is_remake: c.isRemake || false,
+            status: c.status,
+            ship_date: c.shipDate,
+            memo: c.memo || '',
+            photos: c.photos || [],
+            done_viewed: c.doneViewed || false
+        };
+        if (c.id) {
+            sb.from('cases').update(sbData).eq('id', c.id).then();
+        } else {
+            sb.from('cases').insert(sbData).then();
+        }
+    });
 }
 
 function saveMessages() {
     localStorage.setItem(AppConfig.storageKeys.messages, JSON.stringify(messages));
 }
 
-function loadData() {
+async function loadData() {
+    const loadedFromSupabase = await loadFromSupabase();
+    
+    if (loadedFromSupabase) {
+        return;
+    }
+    
     try {
         const savedCases = localStorage.getItem(AppConfig.storageKeys.cases);
         const savedClinics = localStorage.getItem(AppConfig.storageKeys.clinics);

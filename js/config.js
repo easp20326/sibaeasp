@@ -19,6 +19,10 @@ const AppConfig = {
         messages: 'eroom_messages',
         photos: 'eroom_photos',
         factory: 'eroom_factory'
+    },
+    supabase: {
+        url: 'https://ewwfjhcrvayjmdsxtygr.supabase.co',
+        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3d2ZqaGNydmF5am1kc3h0eWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDIyMjAsImV4cCI6MjA4OTQ3ODIyMH0.KHGj9UBNXxNuYteyJz5eHB-EoxR4nOPub7tnwrxMEho'
     }
 };
 
