@@ -3,11 +3,12 @@ let isLoggedIn = false;
 async function initApp() {
     updateTopbarDate();
     setInterval(updateTopbarDate, 60000);
+    await initData();
     checkSession();
 }
 
-function initData() {
-    loadData();
+async function initData() {
+    await loadData();
     initDefaultData();
     populateRegisterOptions();
     populateClinicFilter();
@@ -51,7 +52,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     try {
         const adminConfig = await initializeAdminAccount();
         
-        loadData();
+        await loadData();
         
         if (clinics.length === 0) {
             const pwd1 = await hashPassword('seoul123');
